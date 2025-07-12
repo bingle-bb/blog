@@ -103,9 +103,8 @@ const List = () => {
     setTitle("");
     setContent("");
   };
-  // ==========================
+
   // RENDERING BASED ON STATE
-  // ==========================
 
   // Show Create Form
   if (isCreate) {
