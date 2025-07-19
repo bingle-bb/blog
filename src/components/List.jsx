@@ -11,57 +11,49 @@ import Post from "./Post";
 import Edit from "./Edit";
 
 const List = () => {
-  // State to track post title input
   const [title, setTitle] = useState("");
-
-  // State to track post content input
   const [content, setContent] = useState("");
 
-  // Main post data list
   const [posts, setPosts] = useState([
     { id: 1, title: "Post 1", content: "Content 1" },
     { id: 2, title: "Post 2", content: "Content 2" },
   ]);
 
-  // Whether we're currently in create mode
   const [isCreate, setIsCreate] = useState(false);
-
-  // Whether we're currently in edit mode
   const [isEdit, setIsEdit] = useState(false);
-
-  // ID of the post currently being edited
   const [editId, setEditId] = useState(null);
 
-  // Logs every time the posts array changes (for debugging)
   useEffect(() => console.log(posts), [posts]);
 
-  // Toggle between show/hide create form
   const toggleCreate = () => setIsCreate(!isCreate);
-
-  // Toggle between show/hide edit form
   const toggleEdit = () => setIsEdit(!isEdit);
 
-  // Start editing a post by ID
   const editPost = (id) => {
+    const post = posts.find((p) => p.id === id);
     setEditId(id);
+    setTitle(post.title);
+    setContent(post.content);
     toggleEdit();
   };
 
-  // 🔥 Delete post with confirmation
   const deletePost = (id) => {
     if (window.confirm("Are you sure you want to delete this post?")) {
       const filtered = posts.filter((post) => post.id !== id);
-      setPosts(filtered);
+      const renumbered = renumberPosts(filtered); // <- renumber here
+      setPosts(renumbered);
     }
   };
 
-  // Store title input in state
-  const saveTitleToState = (e) => setTitle(e.target.value);
+  const renumberPosts = (postList) => {
+    return postList.map((post, index) => ({
+      ...post,
+      id: index + 1,
+    }));
+  };
 
-  // Store content input in state
+  const saveTitleToState = (e) => setTitle(e.target.value);
   const saveContentToState = (e) => setContent(e.target.value);
 
-  // Create new post and add it to the list
   const savePost = (e) => {
     e.preventDefault();
     if (title.trim() === "" || content.trim() === "") {
@@ -69,16 +61,16 @@ const List = () => {
       return;
     }
 
-    const id = posts.length + 1;
-    setPosts([...posts, { id, title, content }]);
+    const newPost = { id: 0, title, content }; // temp id
+    const updatedList = [...posts, newPost];
+    const renumbered = renumberPosts(updatedList); // <- renumber here
+    setPosts(renumbered);
 
-    // Reset form
     setTitle("");
     setContent("");
     toggleCreate();
   };
 
-  // Save the updated post during editing
   const updatePost = (e) => {
     e.preventDefault();
 
@@ -86,8 +78,8 @@ const List = () => {
       post.id === editId
         ? {
             ...post,
-            title: title || post.title,
-            content: content || post.content,
+            title: title,
+            content: content,
           }
         : post
     );
@@ -96,17 +88,17 @@ const List = () => {
     toggleEdit();
     setTitle("");
     setContent("");
+    setEditId(null);
   };
 
   const cancelEdit = () => {
     setIsEdit(false);
     setTitle("");
     setContent("");
+    setEditId(null);
   };
 
-  // RENDERING BASED ON STATE
-
-  // Show Create Form
+  // Render Create Form
   if (isCreate) {
     return (
       <Create
@@ -118,13 +110,16 @@ const List = () => {
     );
   }
 
-  // Show Edit Form
+  // Render Edit Form
   if (isEdit) {
     const post = posts.find((p) => p.id === editId);
+
+    if (!post) return <p>Post not found!</p>;
+
     return (
       <Edit
-        title={post.title}
-        content={post.content}
+        title={title}
+        content={content}
         saveTitleToState={saveTitleToState}
         saveContentToState={saveContentToState}
         updatePost={updatePost}
@@ -133,14 +128,14 @@ const List = () => {
     );
   }
 
-  // Show Main Listing Page
+  // Render Post List
   return (
     <>
       <h1 className="text-center mt-5 mb-4 fw-bold">Blog Posts</h1>
 
       <div className="container" style={{ maxWidth: "900px" }}>
         <div className="table-responsive">
-          <table className="table table-warning text-center ">
+          <table className="table table-warning text-center">
             <thead>
               <tr style={{ height: "60px" }}>
                 <th>#</th>
