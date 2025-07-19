@@ -1,13 +1,7 @@
 // React core hooks
 import { useState, useEffect } from "react";
-
-// Import the form component for creating new posts
 import Create from "./Create";
-
-// Import the individual post component to display each row
 import Post from "./Post";
-
-// Import the form component for editing posts
 import Edit from "./Edit";
 
 const List = () => {
